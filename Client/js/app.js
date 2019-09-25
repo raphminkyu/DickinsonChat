@@ -1,0 +1,1 @@
+socket.on(‘event name’, function(msg){});socket.emit('event name', message);
