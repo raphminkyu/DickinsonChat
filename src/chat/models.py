@@ -15,5 +15,5 @@ class Message(models.Model):
         return self.author.username
     
     #load only the last 10 messages
-    def last_10_messages(self):
+    def last_10_messages():
         return Message.objects.order_by("-timestamp").all()[:10]
