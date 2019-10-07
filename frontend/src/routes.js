@@ -1,12 +1,13 @@
 import React from "react";
 import { Route } from "react-router-dom";
-
+import Hoc from "./hoc/hoc"
 import Chat from "./containers/Chat";
 
+//navigates to chatID in Contact.js
 const BaseRouter = () => (
-  <div>
+  <Hoc>
     <Route exact path="/:chatID/" component={Chat} />
-  </div>
+  </Hoc>
 );
 
 export default BaseRouter;

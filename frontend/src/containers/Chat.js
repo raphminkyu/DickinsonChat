@@ -1,19 +1,19 @@
 import React from 'react';
-
-
+import { connect } from 'react-redux';
 import WebSocketInstance from '../websocket';
+import Hoc from '../hoc/hoc';
 
 
 class Chat extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {} //common before react16
+        this.state = {messages: ''} //common before react16
 
     
         this.waitForSocketConnection(() => {
             //messages Callback
-          WebSocketInstance.addCallbacks(this.setMessages.bind(this), this.addMessage.bind(this))
-          WebSocketInstance.fetchMessages(this.props.currentUser);
+            WebSocketInstance.addCallbacks(this.setMessages.bind(this), this.addMessage.bind(this))
+            WebSocketInstance.fetchMessages(this.props.currentUser);
         });
     }
     
@@ -59,41 +59,73 @@ class Chat extends React.Component {
             message: ''
         });  //just remove everything from input without reloading
     }
+    //helper method for time under renderMessages
+    renderTimestamp = timestamp => {
+        let prefix = ''; 
+        const timeDiff = Math.round((new Date().getTime() - new Date(timestamp).getTime())/60000);
+        if (timeDiff < 1) { // less than one minute ago
+            prefix = 'just now...';
+        } else if (timeDiff < 60 && timeDiff > 1) { // less than sixty minutes ago
+            prefix = `${timeDiff} minutes ago`;
+        } else if (timeDiff < 24*60 && timeDiff > 60) { // less than 24 hours ago
+            prefix = `${Math.round(timeDiff/60)} hours ago`;
+        } else if (timeDiff < 31*24*60 && timeDiff > 24*60) { // less than 7 days ago
+            prefix = `${Math.round(timeDiff/(60*24))} days ago`;
+        } else {
+            prefix = `${new Date(timestamp)}`;
+        }
+        return prefix
+    }
 
     //make funciton to handle messages send an hr ago
     //return a list of list items that will be rendered inside the unorered list
     renderMessages = (messages) => {
-        const currentUser = "admin";
+        const currentUser = this.props.username;
         //map the messages so that each returns a list
-        return messages.map((message, i) => (
+        return messages.map((message, i, arr) => (
             <li 
                 key={message.id} 
+                style={{marginBottom: arr.length - 1 === i ? '300px' : '15px'}}
                 className={message.author === currentUser ? 'sent' : 'replies'}>
                 <img src="http://emilcarlsson.se/assets/mikeross.png" />
                 <p>{message.content}
                     <br />
-                    <small className={message.author === currentUser ? 'sent' : 'replies'}>
-                    {Math.round((new Date().getTime() - new Date(message.timestamp).getTime())/60000)} minutes ago
+                    <small>
+                    {this.renderTimestamp(message.timestamp)} 
                     </small>
                 </p>
             </li>
         ));
     }
 
-    componentDidCatch(){
-        WebSocketInstance.connect();
+    scrollToBottom = () => {
+        this.messagesEnd.scrollIntoView({ behavior: "smooth" });
     }
+
+    componentDidMount() {
+        //WebSocketInstance.connect();
+        this.scrollToBottom();
+    }
+
+    componentDidUpdate() {
+        this.scrollToBottom();
+    }
+
+    
 
     render() {
         const messages = this.state.messages;
         return (
-            <div>
+            <Hoc>
                 <div className="messages">
                     <ul id="chat-log">
                     { 
                         messages && 
                         this.renderMessages(messages) 
                     }
+                    <div style={{ float:"left", clear: "both" }}
+                        ref={(el) => { this.messagesEnd = el; }}>
+                    </div>
                     </ul>
                 </div>
                 <div className="message-input">
@@ -113,11 +145,17 @@ class Chat extends React.Component {
                         </div>
                     </form>
                 </div>
-            </div>
+            </Hoc>
+       
         );
     };
 }
 
+const mapStateToProps = state => {
+    return {
+        username: state.username
+    }
+}
 
 
-export default Chat;
+export default connect(mapStateToProps)(Chat); 

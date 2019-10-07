@@ -1,6 +1,10 @@
 import axios from 'axios';
 import * as actionTypes from './actionTypes';
 
+//stores variables in local storage
+//everytime we reload the component in App.js componentDidMount
+//then we check if we have that token and username in our local storage
+
 export const authStart = () => {
     return {
         type: actionTypes.AUTH_START
@@ -14,6 +18,7 @@ export const authSuccess = (username, token) => {
         username: username
     }
 }
+//functions above indicates the loading
 
 export const authFail = error => {
     return {
