@@ -57,8 +57,9 @@ class Chat extends React.Component {
     sendMessageHandler = (e) => {
         e.preventDefault(); //form doesn't reload the page;
         const messageObject = {
-            from: "admin",
+            from: this.props.username,
             content: this.state.message,
+            chatId: this.props.match.params.chatID
         };
         WebSocketInstance.newChatMessage(messageObject);
         this.setState({
@@ -115,9 +116,23 @@ class Chat extends React.Component {
     componentDidUpdate() {
         this.scrollToBottom();
     }
-
+    //disconnect goes here
+    //disconnect once we move into a new chat
     componentWillReceiveProps(newProps) {
-		this.initialiseChat();
+        //check if we moved on to a different url
+        //did the parameter of the chatroom change
+        if(this.props.match.params.chatID !== newProps.match.params.chatID){
+            WebSocketInstance.disconnect();
+            this.waitForSocketConnection(() => {
+                WebSocketInstance.fetchMessages(
+                  this.props.username, 
+                  this.props.match.params.chatID
+                );
+              });
+    
+            WebSocketInstance.connect(newProps.match.params.chatID);
+
+        }
     }
 
     render() {

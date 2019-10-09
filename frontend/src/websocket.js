@@ -32,6 +32,10 @@ class WebSocketService {
         this.connect();
       };
     }
+    //close the websocket connection to the current connection we have
+    disconnect(){
+      this.socketRef.close();
+    }
   
     socketNewMessage(data) {
       const parsedData = JSON.parse(data);
@@ -59,7 +63,8 @@ class WebSocketService {
       this.sendMessage({ 
         command: 'new_message', 
         from: message.from, 
-        message: message.content 
+        message: message.content, 
+        chatId: message.chatId
       }); 
     }
   
