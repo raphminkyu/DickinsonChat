@@ -15,15 +15,12 @@ class WebSocketService {
   
   //connect websocet
       // set function when websocket is opened/connected
-    connect() {
-      const path = 'ws://127.0.0.1:8000/ws/chat/test/';
+    connect(chatUrl) {
+      const path = `ws://127.0.0.1:8000/ws/chat/${chatUrl}/`;
       this.socketRef = new WebSocket(path);
       this.socketRef.onopen = () => {
         console.log('WebSocket open');
       };
-      this.socketNewMessage(JSON.stringify({
-        command: 'fetch_messages'
-      }));
       this.socketRef.onmessage = e => {
         this.socketNewMessage(e.data);
       };
@@ -38,9 +35,7 @@ class WebSocketService {
   
     socketNewMessage(data) {
       const parsedData = JSON.parse(data);
-       //fetch message or recieve
       const command = parsedData.command;
-        // having 0 commdnad
       if (Object.keys(this.callbacks).length === 0) {
         return;
       }
@@ -51,21 +46,29 @@ class WebSocketService {
         this.callbacks[command](parsedData.message);
       }
     }
-  
-    fetchMessages(username) {
-      this.sendMessage({ command: 'fetch_messages', username: username });
+
+    fetchMessages(username, chatId) {
+      this.sendMessage({ 
+        command: 'fetch_messages', 
+        username: username, 
+        chatId: chatId 
+      });
     }
   
     newChatMessage(message) {
-      this.sendMessage({ command: 'new_message', from: message.from, message: message.content }); 
+      this.sendMessage({ 
+        command: 'new_message', 
+        from: message.from, 
+        message: message.content 
+      }); 
     }
   
   //helper method
       //access websockets and add callbacks
-    addCallbacks(messagesCallback, newMessageCallback) {
-      this.callbacks['messages'] = messagesCallback;
-      this.callbacks['new_message'] = newMessageCallback;
-    }
+      addCallbacks(messagesCallback, newMessageCallback) {
+    this.callbacks['messages'] = messagesCallback;
+    this.callbacks['new_message'] = newMessageCallback;
+  }
     
     sendMessage(data) {
       try {

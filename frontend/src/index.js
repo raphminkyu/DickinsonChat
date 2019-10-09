@@ -13,14 +13,14 @@ function configureStore() {
     const store = createStore(reducer, composeEnhances(
         applyMiddleware(thunk)
     ));
-
+  
     if (module.hot) {
       module.hot.accept('./store/reducers', () => {
         const nextRootReducer = require('./store/reducers/auth');
         store.replaceReducer(nextRootReducer);
       });
     }
-
+  
     return store;
 }
 

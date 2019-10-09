@@ -5,18 +5,25 @@ import Hoc from '../hoc/hoc';
 
 
 class Chat extends React.Component {
+    state = {messages: ''} 
+
+    initialiseChat(){
+
+        this.waitForSocketConnection(() => {
+            WebSocketInstance.addCallbacks(this.setMessages.bind(this), this.addMessage.bind(this))
+            WebSocketInstance.fetchMessages(
+              this.props.username, 
+              this.props.match.params.chatID
+            );
+          });
+
+        WebSocketInstance.connect(this.props.match.params.chatID);
+    }
     constructor(props) {
         super(props);
-        this.state = {messages: ''} //common before react16
-
-    
-        this.waitForSocketConnection(() => {
-            //messages Callback
-            WebSocketInstance.addCallbacks(this.setMessages.bind(this), this.addMessage.bind(this))
-            WebSocketInstance.fetchMessages(this.props.currentUser);
-        });
+        this.initialiseChat();   
     }
-    
+
     waitForSocketConnection(callback) {
         const component = this;
         setTimeout(
@@ -38,14 +45,13 @@ class Chat extends React.Component {
     }
     
     setMessages(messages) {
+        
         this.setState({ messages: messages.reverse()});
     }
 
     //everytime you type on facebook
     messageChangeHandler = (event) =>  {
-        this.setState({
-            message: event.target.value
-        })
+        this.setState({ message: event.target.value });
     }
     
     sendMessageHandler = (e) => {
@@ -91,7 +97,7 @@ class Chat extends React.Component {
                 <p>{message.content}
                     <br />
                     <small>
-                    {this.renderTimestamp(message.timestamp)} 
+                        {this.renderTimestamp(message.timestamp)}
                     </small>
                 </p>
             </li>
@@ -103,7 +109,6 @@ class Chat extends React.Component {
     }
 
     componentDidMount() {
-        //WebSocketInstance.connect();
         this.scrollToBottom();
     }
 
@@ -111,7 +116,9 @@ class Chat extends React.Component {
         this.scrollToBottom();
     }
 
-    
+    componentWillReceiveProps(newProps) {
+		this.initialiseChat();
+    }
 
     render() {
         const messages = this.state.messages;
@@ -146,7 +153,6 @@ class Chat extends React.Component {
                     </form>
                 </div>
             </Hoc>
-       
         );
     };
 }
